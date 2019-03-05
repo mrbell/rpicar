@@ -22,7 +22,8 @@
 ## Sending controller inputs works great! 
 ## Sending images doesn't. Maybe I need separate sockets?
 ## TODO: Try creating another set of test client/server apps that just transmit the images
-## and do not send controller stuff
+## and do not send controller stuff. Send compressed images, but will need to have a dynamic
+## message length in this case.
 
 ## Maybe do something where the client connects to the server on port X with port Y. 
 ## It sends a UDP port A that the server should send stuff back on from port B.
@@ -48,11 +49,18 @@ Start loop:
     Display inputs on screen
 """
 
+## Protocol
+# header indicating a frame ID and message length
+# each message send a frame ID, frame number and part of the message 
+
 # pylint: disable=E1101
 import numpy as np
 import sys, pygame, time
 import socket
 import struct
+from gzip import GzipFile
+from io import BytesIO
+from uuid import uuid4 as uuid
 
 if len(sys.argv) != 3:
     print(f"Usage: {sys.argv[0]} <host> <port>")
@@ -108,8 +116,8 @@ print(f"Connected with {addr[0]}:{addr[1]}")
 screen = pygame.display.set_mode(size)
 pygame.display.set_caption("RPiCar Server")
 
-# random_image = np.zeros((imwidth, imheight, 3), dtype='uint8')
-# camera_image = pygame.surfarray.make_surface(random_image).convert()
+random_image = np.zeros((imwidth, imheight, 3), dtype='uint8')
+camera_image = pygame.surfarray.make_surface(random_image).convert()
 
 text_print = TextPrint()
 
@@ -129,54 +137,38 @@ while True:
     screen.fill(WHITE)
     text_print.reset()
 
-    # Receive two float32s from the client, one per axis of control (throttle and steering)
-    msg, addr = sock.recvfrom(8)
-    if not msg:
-        break
-    ax1 = struct.unpack('>f', msg[:4])[0]
-    ax2 = struct.unpack('>f', msg[4:])[0]
-
-    # print("Received {:} {:} from client".format(ax1, ax2))
-
-    text_print.print(screen, 'Inputs received from client:')
-    text_print.indent()
-    text_print.print(screen, 'Ax1: {:.2f}'.format(ax1))
-    text_print.print(screen, 'Ax2: {:.2f}'.format(ax2))
-
-    text_print.unindent()
-    text_print.print(screen, '')
     text_print.print(screen, '<-- Image transmitted to client')
 
     # Get the image to transmit
-    # random_image = np.zeros((imwidth, imheight, 3), dtype='uint8')
-    # check_color_ndx = 0
-    # for w in range(16):
-    #     for h in range(12):
-    #         random_image[40*w:40*(w+1), 40*h:40*(h+1), :] = check_sequence[check_color_ndx]
-    #         check_color_ndx = 1 - check_color_ndx
-    #     check_color_ndx = 1 - check_color_ndx
+    random_image = np.zeros((imwidth, imheight, 3), dtype='uint8')
+    check_color_ndx = 0
+    for w in range(16):
+        for h in range(12):
+            random_image[40*w:40*(w+1), 40*h:40*(h+1), :] = check_sequence[check_color_ndx]
+            check_color_ndx = 1 - check_color_ndx
+        check_color_ndx = 1 - check_color_ndx
 
-    # pygame.surfarray.blit_array(camera_image, random_image)
-    # screen.blit(camera_image, (0, 0))
+    pygame.surfarray.blit_array(camera_image, random_image)
+    screen.blit(camera_image, (0, 0))
     
-    # # random_image = random_image.tobytes()
+    random_image = random_image.tobytes()
+    # bf = BytesIO()
+    # gzf = GzipFile(fileobj=bf)
+    # gzf.write(random_image.tobytes())
 
-    # counter += 1
-    # if counter >= FPS:
-    #     counter = 0
-    #     check_sequence = [check_sequence[1], check_sequence[0]]
+    counter += 1
+    if counter >= FPS:
+        counter = 0
+        check_sequence = [check_sequence[1], check_sequence[0]]
     
-    
+    for i in range(3600):
+        part = struct.pack('>H', i) + random_image[(i * 256):((i + 1) * 256)]
+        sock.sendto(part, addr)
 
-    # This image, as int32, is 3686400 bytes
-    # That's 4096 chunks of 900 bytes
-    # I'll append a sequence number so we can stitch back together on the client in order
+    msg, addr = sock.recvfrom(4)
+    if msg != b'g2g!':
+        raise Exception("Something went wrong!")
 
-    # print("Transmitting image...")
-    # for i in range(3600):
-    #     part = struct.pack('>H', i) + random_image[(i * 256):((i + 1) * 256)]
-    #     sock.sendto(part, addr)
-    # print("Image transmitted!")
     # Cap the FPS
     elapsed_time = time.time() - t0
 
@@ -188,6 +180,4 @@ while True:
     elapsed_time = time.time() - t0
 
     if ((1 / FPS) - elapsed_time) > 0:
-        # if np.random.rand() < 0.01:
-        #     print(1/elapsed_time)
         time.sleep((1 / FPS) - elapsed_time)

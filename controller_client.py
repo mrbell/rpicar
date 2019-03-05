@@ -112,7 +112,6 @@ while True:
     front_back = -1.0 * joystick.get_axis(2)
     joy_input = struct.pack('>f', left_right) + struct.pack('>f', front_back)
 
-    # print("Transmitting inputs...")
     sock.sendto(joy_input, server_addr)
 
     text_print.print(screen, 'Inputs sent to server:')
@@ -124,28 +123,6 @@ while True:
     text_print.print(screen, '')
     text_print.print(screen, '<-- Image received from server')
 
-    # Get the image to transmit
-    # print("Receiving image...")
-    # image_parts = []
-    # for i in range(3600):
-    #     part, addr = sock.recvfrom(258)
-    #     if not part:
-    #         raise Exception('connection to server lost')
-    #     image_parts.append((
-    #         struct.unpack('>H', part[:2]),
-    #         part[2:]
-    #     ))
-    
-    # image_parts = sorted(image_parts, key=lambda x: x[0])
-
-    # random_image = b''
-    # for part in image_parts:
-    #     random_image += part[1]
-    # random_image = np.frombuffer(random_image, dtype='uint8').reshape((imwidth, imheight, 3))
-
-    # pygame.surfarray.blit_array(camera_image, random_image)
-    # screen.blit(camera_image, (0, 0))
-    
     # Cap the FPS
     elapsed_time = time.time() - t0
 
@@ -157,6 +134,4 @@ while True:
     elapsed_time = time.time() - t0
 
     if ((1 / FPS) - elapsed_time) > 0:
-        # if np.random.rand() < 0.01:
-        #     print(1/elapsed_time)
         time.sleep((1 / FPS) - elapsed_time)

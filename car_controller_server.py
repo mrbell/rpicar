@@ -55,7 +55,7 @@ msg, addr = sock.recvfrom(4)
 if msg != b'hiya':
     raise Exception("Something went wrong!")
 
-print(f"Connected with {addr[0]}:{addr[1]}")
+print("Connected with {:}:{:}".format(addr[0], addr[1]))
 
 while True:
     t0 = time.time()

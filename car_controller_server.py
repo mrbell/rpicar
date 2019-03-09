@@ -27,15 +27,15 @@ FPS = 10
 # WHITE = (255, 255, 255)
 # BLACK = (0, 0, 0)
 
-MIN_STEERING, MAX_STEERING = 300, 460   # Right to left
-MIN_THROTTLE, MAX_THROTTLE = 320, 420   # Reverse to front
+MIN_STEERING, MAX_STEERING = 300, 450   # Right to left
+MIN_THROTTLE, MAX_THROTTLE = 330, 400   # Reverse to front
 
 
 def get_steering_pwm(value):
     """
     Convert value [-1, 1] to the range [MIN_STEERING, MAX_STEERING]
     """
-    return int(MIN_STEERING + (1 + (-1 * value)) * 0.5 * (MAX_STEERING - MIN_STEERING) + 0.5)
+    return int(MIN_STEERING + (1 + (+1 * value)) * 0.5 * (MAX_STEERING - MIN_STEERING) + 0.5)
 
 
 def get_throttle_pwm(value):
@@ -79,10 +79,10 @@ while True:
         end=''
     )
 
-    # pwm = Adafruit_PCA9685.PCA9685()
-    # pwm.set_pwm_freq(60)
-    # pwm.set_pwm(0, 0, )
-    # pwm.set_pwm(1, 0, get_steering_pwm(left_right))  # Scale these to bounds
+    pwm = Adafruit_PCA9685.PCA9685()
+    pwm.set_pwm_freq(60)
+    pwm.set_pwm(0, 0, front_back_pwm)
+    pwm.set_pwm(1, 0, left_right_pwm)
 
     # Cap the FPS
     elapsed_time = time.time() - t0

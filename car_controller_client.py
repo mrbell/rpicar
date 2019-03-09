@@ -19,7 +19,7 @@ server_addr = (host, port)
 pygame.init()  
 
 # Set parameters and constants
-FPS = 30
+FPS = 10
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 

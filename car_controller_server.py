@@ -8,7 +8,7 @@ import sys, time
 # import pygame
 import socket
 import struct
-import Adafruit_PCA968
+import Adafruit_PCA9685
 
 
 if len(sys.argv) != 3:
@@ -23,7 +23,7 @@ server_addr = (host, port)
 # Set parameters and constants
 # size = width, height = 960, 480
 # imsize = imwidth, imheight = 640, 480
-FPS = 30
+FPS = 10
 # WHITE = (255, 255, 255)
 # BLACK = (0, 0, 0)
 
@@ -35,14 +35,14 @@ def get_steering_pwm(value):
     """
     Convert value [-1, 1] to the range [MIN_STEERING, MAX_STEERING]
     """
-    return MIN_STEERING + (1 + (-1 * value)) * 0.5 * (MAX_STEERING - MIN_STEERING)
+    return int(MIN_STEERING + (1 + (-1 * value)) * 0.5 * (MAX_STEERING - MIN_STEERING) + 0.5)
 
 
 def get_throttle_pwm(value):
     """
     Convert value [-1, 1] to the range [MIN_STEERING, MAX_STEERING]
     """
-    return MIN_THROTTLE + (1 + value) * 0.5 * (MAX_THROTTLE - MIN_THROTTLE)
+    return int(MIN_THROTTLE + (1 + value) * 0.5 * (MAX_THROTTLE - MIN_THROTTLE) + 0.5)
 
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -67,10 +67,10 @@ while True:
     left_right = struct.unpack('>f', msg[:4])[0]
     front_back = struct.unpack('>f', msg[4:])[0]
 
-    pwm = Adafruit_PCA9685.PCA9685()
-    pwm.set_pwm_freq(60)
-    pwm.set_pwm(0, 0, get_throttle_pwm(front_back))
-    pwm.set_pwm(1, 0, get_steering_pwm(left_right))  # Scale these to bounds
+    # pwm = Adafruit_PCA9685.PCA9685()
+    # pwm.set_pwm_freq(60)
+    # pwm.set_pwm(0, 0, get_throttle_pwm(front_back))
+    # pwm.set_pwm(1, 0, get_steering_pwm(left_right))  # Scale these to bounds
 
     # Cap the FPS
     elapsed_time = time.time() - t0

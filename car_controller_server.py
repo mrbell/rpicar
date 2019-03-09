@@ -12,7 +12,7 @@ import Adafruit_PCA968
 
 
 if len(sys.argv) != 3:
-    print(f"Usage: {sys.argv[0]} <host> <port>")
+    print("Usage: {:} <host> <port>".format(sys.argv[0]))
     sys.exit(1)
 host = sys.argv[1]
 port = int(sys.argv[2])

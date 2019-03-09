@@ -56,6 +56,7 @@ if msg != b'hiya':
     raise Exception("Something went wrong!")
 
 print("Connected with {:}:{:}".format(addr[0], addr[1]))
+print("Starting control loop")
 
 while True:
     t0 = time.time()
@@ -67,9 +68,20 @@ while True:
     left_right = struct.unpack('>f', msg[:4])[0]
     front_back = struct.unpack('>f', msg[4:])[0]
 
+    left_right_pwm = get_steering_pwm(left_right)
+    front_back_pwm = get_throttle_pwm(front_back)
+
+    print('\r', end='')
+    print(
+        'Front/Back: {:.2f} ({:>3})   -    Left/Right: {:.2f}  ({:>3})  '.format(
+            front_back, front_back_pwm, left_right, left_right_pwm
+        ), 
+        end=''
+    )
+
     # pwm = Adafruit_PCA9685.PCA9685()
     # pwm.set_pwm_freq(60)
-    # pwm.set_pwm(0, 0, get_throttle_pwm(front_back))
+    # pwm.set_pwm(0, 0, )
     # pwm.set_pwm(1, 0, get_steering_pwm(left_right))  # Scale these to bounds
 
     # Cap the FPS

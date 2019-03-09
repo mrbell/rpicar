@@ -34,6 +34,9 @@ else:
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.sendto(b'hiya', server_addr)
 
+print('Connected to server')
+print('Starting control loop')
+
 while True:
     t0 = time.time()
 
@@ -49,6 +52,12 @@ while True:
             pygame.key.get_pressed()[pygame.K_DOWN] * -1.0 + 
             pygame.key.get_pressed()[pygame.K_UP] * 1.0
         )
+
+    print('\r', end='')
+    print(
+        'Front/Back: {:.2f}    -    Left/Right: {:.2f}    '.format(front_back, left_right), 
+        end=''
+    )
 
     joy_input = struct.pack('>f', left_right) + struct.pack('>f', front_back)
 
